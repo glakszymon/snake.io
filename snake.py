@@ -31,9 +31,15 @@ class snake:
                     ey += 30
                     self.krweza = 'gora'
             
+                self.last_move = self.krweza
 
             self.snake_body.append(body(ex, ey, 'prawo', obraz))
+        
+    def rusz_sie(self):
         clock.schedule_interval(self.move, self.pre)
+    
+    def stop(self):
+        clock.unschedule(self.move)
 
     def spowolnienie(self):
         clock.unschedule(self.move)
@@ -41,7 +47,7 @@ class snake:
         clock.schedule_interval(self.move, self.pre)
             
     def draw(self):
-        for r in self.snake_body:
+        for r in self.snake_body[::-1]:
             r.draw()
 
     def update(self):
@@ -73,6 +79,8 @@ class snake:
             px = tx
             py = ty   
 
+        self.last_move = self.krweza
+
     def czy_gryze(self):
         gx = None
         gy = None
@@ -89,22 +97,22 @@ class snake:
      
 
     def prawo(self):
-        if self.krweza == 'lewo':
+        if self.last_move == 'lewo':
           return  
         self.krweza = 'prawo'
     
     def lewo(self):
-        if self.krweza == 'prawo':
+        if self.last_move == 'prawo':
             return  
         self.krweza = 'lewo'
 
     def gora(self):
-        if self.krweza == 'dol':
+        if self.last_move == 'dol':
           return  
         self.krweza = 'gora'
 
     def dol(self):
-        if self.krweza == 'gora':
+        if self.last_move == 'gora':
           return  
         self.krweza = 'dol'
 

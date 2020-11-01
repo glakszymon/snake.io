@@ -31,6 +31,10 @@ class game:
         self.sekundy = 0
         self.minuty = 0
 
+        self.message = "SPACJA"
+
+        self.goto_now = None
+
         self.ilosc_kretow = (1)
         self.kreciki = []
         # self.krecik = None
@@ -45,16 +49,14 @@ class game:
 
         self.put_apple()
 
-        clock.schedule_interval(self.czasObliczanie, 1)
 
-        losowanie_pokaz = random.randrange(1, 9)
-        print('sekundy:', losowanie_pokaz)
-        clock.schedule_unique(self.put_krecik, losowanie_pokaz)
+        self.losowanie_pokaz = random.randrange(1, 9)
+        print('sekundy:', self.losowanie_pokaz)
 
         # self.miejsce_krecik_x = None
         # self.miejsce_krecik_y = None
 
-
+        self.zatrzymana_gra = (True)
 
     def draw(self, screen):
         screen.clear()
@@ -71,6 +73,9 @@ class game:
         screen.draw.filled_rect(Rect((150, 25), (80 , 30)), (game.tlozmiennej))
         screen.draw.text("Punkty:", (45, 25), fontname =  'orbitro', color="black")
         screen.draw.text(f'{self.punkty}', midright = (225, 40), fontname =  'orbitro', color="black")
+        
+        if self.zatrzymana_gra == True:
+            screen.draw.text(self.message, midbottom = (500, 375), fontname = 'spacja', color="black", fontsize = 70)
         
 
         self.czas_rysowanie(screen)
@@ -89,10 +94,24 @@ class game:
         screen.draw.text(":", center = (913.5, 40), fontname =  'orbitro', color="black")
         screen.draw.text(f'{self.sekundy:02d}' , midleft = (917, 40), fontname =  'orbitro', color="black")
 
+    
     def update(self):
-        self.waz.update()
+
+        if self.goto_now != None:
+            return self.goto_now
         
-        #TODO: wywala sie szybka zmiana kierunku
+        if self.zatrzymana_gra == True:
+            if keyboard.space:
+                self.zatrzymana_gra = False
+                self.waz.rusz_sie()
+                clock.schedule_interval(self.czasObliczanie, 1)
+                clock.schedule_unique(self.put_krecik, self.losowanie_pokaz)
+            
+            return
+        
+               
+        self.waz.update()
+
         if keyboard.up or keyboard.w:
             self.waz.gora()
 
@@ -108,19 +127,24 @@ class game:
         pg = self.waz.poz_glowy()
 
         if pg[0] <= 30:
-            return 'goto_end'
+            self.koniec_gry()
+            return
 
         if pg[1] <= 80:
-            return 'goto_end'
+            self.koniec_gry()
+            return
 
         if pg[2] >= 35 + 930:
-            return 'goto_end'
+            self.koniec_gry()
+            return
 
         if pg[3] >= 80 + 690:
-            return 'goto_end'
+            self.koniec_gry()
+            return
 
         if self.waz.czy_gryze() == True:
-            return 'goto_end'
+            self.koniec_gry()
+            return
 
         if self.waz.istniejesz(self.apple.x, self.apple.y) == True:
             self.punkty += 1
@@ -208,3 +232,18 @@ class game:
 
         losowanie = random.randrange(1, 4)
         clock.schedule_unique(self.put_krecik, losowanie)
+
+    def koniec_gry(self):
+        self.message = 'Niestety, przegrana:('
+        self.zatrzymana_gra = True
+        clock.unschedule(self.put_krecik)
+        clock.unschedule(self.update)
+        clock.unschedule(self.ukryj_krecik)
+        clock.unschedule(self.czasObliczanie)
+        clock.schedule(self.koniec_nadchodzi, 5)
+
+        self.waz.stop()
+
+    def koniec_nadchodzi(self):
+        print("LLLLLLLLLLLLLLLLLLLL")
+        self.goto_now = 'goto_end'
